@@ -4,7 +4,7 @@ import sqlite3
 class MarineDatabase:
     """Local database class that holds data."""
 
-    locale = "testing.db"
+    locale = "marine_life.db"
 
     def __init__(self):
         """Initialize instance variables and creates connection to the database."""
@@ -49,10 +49,11 @@ class MarineDatabase:
             animal_name (str): The name of the animal.
             location_name (str): The location where the animal was seen.
         """
-        self.curr.execute('''INSERT INTO animals (name, location_id) VALUES (
-                            ?, (SELECT locations.id FROM locations
-                            WHERE locations.name = ?))''', (animal_name,
-                                                            location_name))
+        self.curr.execute('''
+            INSERT INTO animals (name, location_id) VALUES (
+            ?, (SELECT locations.id FROM locations
+            WHERE locations.name = ?))
+            ''', (animal_name, location_name))
         self.conn.commit()
 
     def get_locations(self):
@@ -66,9 +67,12 @@ class MarineDatabase:
         Args:
             location (str): The location name for the desired list of animals.
         """
-        names = [x[0] for x in self.curr.execute('''SELECT name FROM animals
-                WHERE location_id = (SELECT locations.id FROM locations WHERE
-                locations.name = ?)''', (location,))]
+        names = [x[0] for x in self.curr.execute("""
+                SELECT name FROM animals
+                WHERE location_id = 
+                (SELECT locations.id FROM locations 
+                WHERE locations.name = ?)
+                """, (location,))]
         return names
 
     def add_observation(self, date, location, animal, amount, temperature):
@@ -157,24 +161,30 @@ class MarineDatabase:
             """, (curr_location,))
             self.conn.commit()
 
-    def delete_location(self, curr_location):
-            self.curr.execute("""
-                DELETE FROM observations
-                WHERE observations.location_id = ?
-                """, (curr_location,))
+    def delete_location(self, location):
+        """Delete a given location.
 
-            self.curr.execute("""
-                DELETE FROM animals
-                WHERE animals.location_id = ?
-                """, (curr_location,))
+        Args:
+            location (str): The name of the location to delete.
+        """
+        self.curr.execute("""
+            SELECT id FROM locations WHERE name = ?
+            """, (location,))
 
-            self.curr.execute("""
-                DELETE FROM locations
-                WHERE locations_id = ?
-                """, (curr_location,))
-            self.conn.commit()
+        location_id = (self.curr.fetchone())[0]
 
-    def commit(self):
+        self.curr.execute("""
+            DELETE FROM observations
+            WHERE observations.location_id = ?
+            """, (location_id,))
+        self.curr.execute("""
+            DELETE FROM animals
+            WHERE animals.location_id = ?
+            """, (location_id,))
+        self.curr.execute("""
+            DELETE FROM locations
+            WHERE locations_id = ?
+            """, (location_id,))
         self.conn.commit()
 
     def close(self):
