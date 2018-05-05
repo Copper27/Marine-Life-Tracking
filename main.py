@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.messagebox
+import database
 
 import matplotlib.pyplot as plt
 
@@ -7,11 +8,15 @@ import matplotlib.pyplot as plt
 
 species_list = []
 location_list = []
+selected_location_name = " "
+
 
 date_list = []
 population_list = []
 temperature_list = []
 
+db = database.MarineDatabase()
+db.create_tables()
 
 class MyGUI:
     def __init__(self):
@@ -109,6 +114,7 @@ class MyGUI:
         index = self.locationList.curselection()
         label = self.locationList.get(index)
         self.select_location(label)
+        selected_location_name = label
 
     def select_location(self, selection):
         location_name = selection
@@ -179,9 +185,6 @@ class MyGUI:
 
 
 
-
-
-
 # **************************************************************************************
 #
 #*****************************add_location_btn_function **********************************
@@ -198,7 +201,8 @@ class MyGUI:
 
         self.location_name_entry.delete(0, name_size)
 
-
+        """ Adds location data to sql database  """
+        db.add_location(location_name)
 
 
 
@@ -218,6 +222,7 @@ class MyGUI:
         self.instruction_add_name.grid(row=0, columnspan=20, sticky='NW',
                                            rowspan=10, padx=5, pady=5, ipadx=10, ipady=4)
 
+
         # Create Label for Species Name
         self.label_species_name = tkinter.Label(self.instruction_add_name, text='Enter Species Name: ')
         self.label_species_name.grid(row=0, column=0)
@@ -234,6 +239,7 @@ class MyGUI:
                                                command=self.root_add_species_name.destroy)
         self.save_name_button.grid(row=1, column=2, sticky='W', padx=5, pady=2)
 
+
     def adding_name(self):
 
         if not self.species_name_entry.get():
@@ -248,6 +254,11 @@ class MyGUI:
         num_name = len(species_name)
 
         self.species_name_entry.delete(0, num_name)
+
+        """     Adding species to local database        """
+        db.get_location_id(selected_location_name)
+        db.add_animal(species_name, "ASS")
+
 
     def delete_species_name(self):
         items = self.speciesList.curselection()
@@ -317,6 +328,7 @@ class MyGUI:
         plt.plot([1, 2, 3, 4])
         plt.ylabel('some numbers')
         plt.show()
+
 
 
 my_gui = MyGUI()

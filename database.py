@@ -142,25 +142,6 @@ class MarineDatabase:
             AND location_id = (SELECT id FROM locations WHERE name = ?)
             """, (animal, location))
 
-
-    def delete_location(self, curr_location):
-
-            self.curr.execute("""
-            DELETE FROM observations
-            WHERE observations.location.id = ?
-            """, (curr_location,))
-
-            self.curr.execute("""
-            DELETE FROM animals
-            WHERE animals.location.id = ?
-            """, (curr_location,))
-
-            self.curr.execute("""
-            DELETE FROM locations
-            WHERE locations.id = ?
-            """, (curr_location,))
-            self.conn.commit()
-
     def delete_location(self, location):
         """Delete a given location.
 
@@ -186,6 +167,15 @@ class MarineDatabase:
             WHERE locations_id = ?
             """, (location_id,))
         self.conn.commit()
+
+    def get_location_id(self, location_name):
+
+        species_location_id = self.curr.execute("""
+            SELECT id
+            FROM locations
+            where name = ?
+            """, (location_name,))
+        return species_location_id
 
     def close(self):
         self.curr.close()
